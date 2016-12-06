@@ -1,0 +1,91 @@
+#NEXUS
+[written Wed Jan 27 10:33:51 EST 2016 by Mesquite  version 2.75 (build 564) at Darrin-Hulseys-MacBook-Pro-7.local/192.168.1.10]
+
+BEGIN TAXA;
+	TITLE Taxa;
+	DIMENSIONS NTAX=38;
+	TAXLABELS
+		aristochromis_christiae_ID25 tyrannochromis_nigriventer_ID5 fossorichromis_rostratus_ID28 nimbochromis_polystigma_ID2 otopharynx_heterodon_ID13 hemitilapia_oxyrhynchus_ID15 otopharynx_lithobates_ID16 stigmatochromis_woodei_ID20 copadichromis_trimaculatus_ID18 docimodus_evelynae_ID10 placidochromis_milomo_ID17 placidochromis_electra_ID21 cheilotilapia_rhodessi_ID24 cheilotilapia_euchilus_ID23 otopharynx_picta_ID14 aulonocara_stuartgranti_ID26 capidochromis_eucinostomus_ID12 taeniolethrinops_preorbitalis_ID29 rhamphochromis_longiceps_ID81 punNye1 hapBur1 simochromis_babaulti_ID48 neoBri1 bathybates_minor_ID90 oreNil1 labeotropheus_fullbornei_ID8 labeotropheus_trewavase_ID6 genyochromis_mento_ID7 melanochromis_kaskazini_ID33 melanochromis_auratus_ID4 metriaclima_greshakae_ID11 metriaclima_patricki_ID22 psedotropheus_crabro_ID27 pseudotropheus_flavus_ID19 labidochromis_gigas_ID30 petrotilapia_nigra_ID9 cyathichromis_obliquidens_ID3 tropheops_microstoma_ID1 
+	;
+
+END;
+
+
+BEGIN TREES;
+	Title Imported_trees;
+	LINK Taxa = Taxa;
+	TRANSLATE
+		1 aristochromis_christiae_ID25,
+		2 tyrannochromis_nigriventer_ID5,
+		3 fossorichromis_rostratus_ID28,
+		4 nimbochromis_polystigma_ID2,
+		5 otopharynx_heterodon_ID13,
+		6 hemitilapia_oxyrhynchus_ID15,
+		7 otopharynx_lithobates_ID16,
+		8 stigmatochromis_woodei_ID20,
+		9 copadichromis_trimaculatus_ID18,
+		10 docimodus_evelynae_ID10,
+		11 placidochromis_milomo_ID17,
+		12 placidochromis_electra_ID21,
+		13 cheilotilapia_rhodessi_ID24,
+		14 cheilotilapia_euchilus_ID23,
+		15 otopharynx_picta_ID14,
+		16 aulonocara_stuartgranti_ID26,
+		17 capidochromis_eucinostomus_ID12,
+		18 taeniolethrinops_preorbitalis_ID29,
+		19 rhamphochromis_longiceps_ID81,
+		20 punNye1,
+		21 hapBur1,
+		22 simochromis_babaulti_ID48,
+		23 neoBri1,
+		24 bathybates_minor_ID90,
+		25 oreNil1,
+		26 labeotropheus_fullbornei_ID8,
+		27 labeotropheus_trewavase_ID6,
+		28 genyochromis_mento_ID7,
+		29 melanochromis_kaskazini_ID33,
+		30 melanochromis_auratus_ID4,
+		31 metriaclima_greshakae_ID11,
+		32 metriaclima_patricki_ID22,
+		33 psedotropheus_crabro_ID27,
+		34 pseudotropheus_flavus_ID19,
+		35 labidochromis_gigas_ID30,
+		36 petrotilapia_nigra_ID9,
+		37 cyathichromis_obliquidens_ID3,
+		38 tropheops_microstoma_ID1;
+	TREE Imported_tree_0 = (1:0.02792456048962256,2:0.02571406729517201,((3:0.04401777477404566,4:0.03631095352710514)0.93:0.005380696427051082,((5:0.03651118473018147,6:0.03467988198091655)1.00:0.00576933775193512,((((7:0.04069761931717395,8:0.04163927320442266)1.00:0.007817989673783258,(9:0.05612957587829803,10:0.03855630852772236)0.57:0.007135426908329237)0.57:0.002359633000997447,((11:0.04075946510595909,12:0.04753326721375631)1.00:0.006681806424355584,(13:0.03071313180508542,14:0.04663932185602505)1.00:0.01027640366438362)0.57:0.001952157027654523)0.57:0.009874694869217123,(15:0.05692359896385883,((16:0.0746916957556755,(17:0.04710969564952603,18:0.05550924038374262)1.00:0.006630498667006635)1.00:0.004779878475610822,((19:0.08604385570179093,(20:0.1625795717398309,(21:0.1500754773265153,(22:0.2580264510284322,(23:0.4266373997210979,(24:0.594288332571784,25:0.8039921470761234)1.00:0.09337476856943121)1.00:0.1275262923904666)1.00:0.08327068275004808)1.00:0.03176998257177117)1.00:0.08508658219404615)0.57:0.004746629183802238,((26:0.04123423538369645,27:0.03714111418630398)1.00:0.01755710502959357,((28:0.05552367552678239,(29:0.04304706832846775,30:0.04038561710837705)1.00:0.01022551415869202)1.00:0.006801928365943549,((31:0.03801587443248246,32:0.05105790990421305)0.96:0.007952081670037343,((33:0.0595693233785994,34:0.04788534091674228)0.58:0.007291974858178976,(35:0.04161170498773794,(36:0.04541819186949445,(37:0.04399863921906082,38:0.04083043362685912)0.63:0.007194456690606462)0.63:0.003769601060393825)0.58:0.003855384518540169)0.84:0.002993934944954871)0.63:0.0116686666120746)1.00:0.00405692460875179)1.00:0.01786079090167907)1.00:0.0150604704943635)0.57:0.005747300119815871)0.57:0.002718488205793076)0.80:0.002898408828368605)1.00:0.002480979435176269)1.00:0.01558204422931323);
+
+END;
+
+
+Begin MESQUITE;
+		MESQUITESCRIPTVERSION 2;
+		TITLE AUTO;
+		tell ProjectCoordinator;
+		timeSaved 1453908831409;
+		getEmployee #mesquite.minimal.ManageTaxa.ManageTaxa;
+		tell It;
+			setID 0 4257618179696754185;
+		endTell;
+		getWindow;
+		tell It;
+			suppress;
+			setResourcesState true false 322;
+			setPopoutState 400;
+			setExplanationSize 0;
+			setAnnotationSize 0;
+			setFontIncAnnot 0;
+			setFontIncExp 0;
+			setSize 700 464;
+			setLocation 8 8;
+			setFont SanSerif;
+			setFontSize 10;
+			getToolPalette;
+			tell It;
+			endTell;
+			desuppress;
+		endTell;
+		endTell;
+end;
+
+
