@@ -1,0 +1,550 @@
+---
+title: "ggtree-steps"
+output: html_document
+---
+
+##Using ggtree to redo figures for Darrin's paper.
+
+```{r}
+setwd("/Users/michael_alfaro/Dropbox/git/mbuna-mpe")
+library(ape)
+
+```
+
+```
+/Users/michael_alfaro/Dropbox/malfaro-acanthomorph/manuscript-final-formatting/Manuscript Version for Submission/
+```
+On Dec 6 2016 I added this file to the git repository at `/Users/michael_alfaro/Dropbox/git/acanthomorphs/acanthomorph_figure_april_2015.ipynb` locally.
+'
+##example of using taxize
+
+Want to count the number of families in the tree
+
+```{r}
+
+library(ape)
+library(taxize)
+
+tt <- read.tree("/Users/michael_alfaro/Dropbox/malfaro-acanthomorph/trees/75p/ExaBayes_ConsensusExtendedMajorityRuleNewick.Acanthomorph-75p-STDPART-1.5M-Burn25-FINAL.tre")
+
+species.list <- tt$tip.label
+temp <- gnr_resolve(names = species.list)
+head(temp)
+fams <- tax_name(query = species.list, get = "family", db = "ncbi")
+unique(fams)
+
+
+beasttree <- read.beast("/Users/michael_alfaro/Dropbox/malfaro-acanthomorph/trees/75p/ExaBayes_ConsensusExtendedMajorityRuleNewick.Acanthomorph-75p-STDPART-1.5M-Burn25-FINAL.tre")
+taxonomy <- read.csv("~/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/tree-taxonomy")
+castax <- read.csv("~/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/tree-taxonomy-cas-txt")
+etoltax <- read.csv("~/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/tree-taxonomy-etol-txt")
+
+reducedetol <- select(etoltax,order, family, full.species ) 
+
+length(unique(reducedetol$family))
+length(unique(reducedetol$order))
+##get rid of index column
+castax <- castax[,-1]
+head(castax)
+p <- p %<+% castax
+p <- p %<+% reducedetol
+head(p$data)
+# Read in trees
+Get PAML label tree, and append bootstrap and bayes values to it
+```{r}
+
+library(ggtree)
+library("ggplot2")  
+library("colorspace")
+library("gridExtra")
+library(dplyr)
+
+setwd("~/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/")
+##The tree
+#beast <- read.beast("final-output.tre")
+beast <- read.beast("test4.tre")
+#beast <-  groupClade(beast, node = 195)
+
+#p <- ggtree(beast, right = TRUE, timescale = TRUE, aes(color=group, linetype=group)) 
+p <- ggtree(beast, right = TRUE, timescale = TRUE) 
+p
+##tree taxonomy
+taxonomy <- read.csv("~/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/tree-taxonomy")
+castax <- read.csv("~/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/tree-taxonomy-cas-txt")
+  etoltax <- read.csv("~/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/tree-taxonomy-etol-txt")
+
+
+reducedetol <- select(etoltax, tip.name, infraclass, megacohort, supercohort, subcohort, infracohort, section, subsection, division, subdivision, series, order, family, full.species ) 
+##get rid of index column
+castax <- castax[,-1]
+head(castax)
+p <- p %<+% castax
+p <- p %<+% reducedetol
+head(p$data)
+
+##write the tips and the taxonomy to a file
+reduced_data <- p$data
+temp <- select( reduced_data, label, family.x, genus, full.species)
+temp <- na.omit(temp)
+
+write.table(file="sampled_species.csv", temp, row.names = F, quote = F, sep = "\t")
+
+
+
+p <- p + geom_text(aes(label=genus), size = 1, fontface = 3)
+
+p <- p + geom_text(aes(label=family.x), hjust = 2, color = "purple", size = 2) + geom_text(aes(label=order.x), hjust = 4, color = "red", size = 3) + geom_text(aes(label=order.y), hjust = 4, vjust = 2, color = "chocolate", size = 3) + geom_text(aes(label=series), hjust = 8, color = "chocolate2", size = 3)  + geom_text(aes(label=subdivision), hjust = 8, vjust = 4, color = "chocolate4", size = 3)
+p
+p$data$x <- p$data$x - max(p$data$x)
+p <- p +  scale_x_continuous(breaks=seq(0,-150, -20), minor_breaks=seq(0, -150, -5)) 
+p <- p + theme_tree2() +theme(panel.grid.major   = element_line(color="black", size=.2), 
+                      panel.grid.minor   = element_line(color="grey", size=.1),
+                      panel.grid.major.y = element_blank(),
+                      panel.grid.minor.y = element_blank())  
+
+p <- p +  geom_nodepoint(aes(color=PP, shape=ifelse(bootstrap < 70, "18", "16")), size = 6) + scale_color_gradient(low="red", high="black")  + geom_text(aes(label=pamllabel), col = "white", size = 2)
+img_info <- read.csv("~/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/tip-image-paths.csv", header = F, as.is = T)
+head(img_info)
+imgshort <- img_info[1:2,]
+imgshort
+#p <-  annotation_image(p, imgshort, width = 0.1)
+p <-  annotation_image(p, img_info, width = 0.1)
+p <- annotation_clade(p, node=106, "Acanthomorpha", offset = 40, offset.text=3, size = 3) %>% 
+annotation_clade(node=195, "acanthuroids+", offset = 20, offset.text=3, size = 2) %>% 
+annotation_clade(node=184, "Percomorpha", offset = 30, offset.text=3) %>% 
+annotation_clade(node=107, "Paracanthopterygii", offset = 30, offset.text=3) %>%
+annotation_clade(node=158, "Ovalentaria", offset = 30, offset.text=3) %>%
+annotation_clade(node=167, "Carangimorpha", offset = 30, offset.text=3) %>%
+annotation_clade(node=139, "Scombrimorpha", offset = 30, offset.text=3) %>%
+annotation_clade(node=125, "Gobiaria", offset = 30, offset.text=3) 
+
+p
+#saving options
+pdf("input-fish-tax.pdf", height=15)
+p
+dev.off()
+p
+
+
+```
+
+##making a plot of the ages by node
+
+read in the summary of the mcmctree combined output
+
+```
+library(ggplot2)
+library(tidyr)
+agesum <- read.csv("/Users/michael_alfaro/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/paml-age-summaries/4-part-ages.csv", header = T,  as.is = T)
+prior_agesum <- read.csv("/Users/michael_alfaro/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/paml-age-summaries/PRIOR-4-part-ages.csv", header = T,  as.is = T)
+
+head(agesum)
+head(prior_agesum)
+
+names(agesum)
+nodes <- names(agesum[-1])
+stats <- agesum[,1]
+agelong <- t(agesum)
+agelong <- agelong[-1,]
+colnames(agelong) <- stats
+head(agelong)
+agelong <- agelong[,-6]
+head(agelong)
+dat[, c(1,23,4)] <- sapply(dat[, c(3,6:15,37)], as.numeric)
+
+
+#convert to long format
+agelong <- setNames(data.frame(t(agelong[,-1])), agelong[,1])
+rownames(agelong) <- agelong[,1]
+agelong <- agelong[,-1]
+names(agelong) <- names(agesum[-1])
+head(agelong)
+
+
+names(agesum)
+
+agelong <- t(agesum)
+
+setNames(data.frame(t(mydf[,-1])), mydf[,1])
+```
+
+#p <- p +  geom_nodepoint(aes(color=PP, shape=ifelse(bootstrap < 70, "18", "16")), size = 6)  + geom_text(aes(label=pamllabel), col = "white", size = 2)
+#p <- p+theme(legend.position="right")
+
+
+#images need to come after 
+
+p + geom_text(aes(label=node), hjust = 1, color = "red") # to get ggplot node numbers
+
+#labelling nodes of interest
+# 107 = paracanthopterygians
+# 158 = Ovalentaria
+# 167 = Carangimorpha
+# 195 Acanthuroids +
+# 139 Scombrimorphs
+# 125 Gobiiformes
+
+temp <- p
+p <- temp
+
+
+
+
+p <- groupClade(p, node=195)
+
+
+
+
+
+p <- groupClade(p, node=213)
+ggtree(p, aes(color=group, linetype=group))
+
+#follow this example
+tree <- groupClade(tree, node=c(21, 17))
+ggtree(tree, aes(color=group, linetype=group))
+
+```
+
+
+theme_tree2() +
+    geom_text(aes(x=max(x), label=label), size=1, color=cols, hjust=-.3) +
+        scale_x_continuous(breaks=c(1992, 1995, 1997, 2000, 2002, 2005), minor_breaks=seq(1992, 2005, 1)) +
+            geom_segment(aes(xend=max(x)+.20, yend=y), linetype="dotted", size=.1, color=cols) +
+                theme(panel.grid.major   = element_line(color="black", size=.2),
+                      panel.grid.minor   = element_line(color="grey", size=.2),
+                      panel.grid.major.y = element_blank(),
+                      panel.grid.minor.y = element_blank())
+
+
+
+p <- p %<+% taxonomy + geom_text(aes(label=Family, size=1)) 
+
+head(p$data)
+
+geom_nodepoint(,color="black", alpha=1, size=6)   + geom_text(aes(label=pamllabel), size=2, color = "white")
+
+
+ggtree(beast) + geom_text(aes(label=PP), hjust=1.25) + theme_tree2()  + geom_text(aes(label=pamllabel), col = "red", hjust=-0.1) + geom_text(aes(label=label), size=3, color="purple", hjust=-0.3)
+
+
+
+
+
+
+
+ggtree(beast) + geom_text(aes(label=ifelse(bootstrap < 90, bootstrap, NA), col=bootstrap/100), vjust=1, hjust=1.25) + geom_text(aes(label=ifelse(PP< 0.95, PP, NA), col=PP), vjust=-0.5, hjust=1) + geom_text(aes(label=pamllabel), col = "black", hjust=-0.1) + scale_color_gradient(low="red", high="black")
+
+
+
+ggtree(beast, aes(color=PP)) + scale_color_continuous(low="green", high="red") + geom_nodepoint(aes(size=bootstrap), alpha=1/4) + scale_color_continuous(low="yellow", high="blue") + theme(legend.position="right")
+
+
+
+##from JC
+
+ggtree(beast) + geom_text(aes(label=bootstrap, col=bootstrap/100), vjust=1, hjust=1) + geom_text(aes(label=PP, col=PP), vjust=-1, hjust=1) + geom_text(aes(label=pamllabel), col = "black", hjust=-0.1) + scale_color_gradient(low="red", high="black")
+
+
+# 
+# bayes <- read.beast("output-bayes.tre")
+# boot <- read.beast("output-boot.tre")
+# 
+# 
+# p <- ggtree(bayes, right = TRUE, timescale = TRUE)  
+# p$data$x <- p$data$x - max(p$data$x)
+# 
+# p + geom_text(aes(label=PP))
+# 
+# p <- ggtree(boot, right = TRUE)  
+# p$data$x <- p$data$x - max(p$data$x)
+# 
+# p + geom_text(aes(label=bootstrap))
+# 
+# 
+# 
+# 
+# 
+# 
+# mergedbeast <- merge_tree(beast,bayes)
+# mergedbeast <- merge_tree(mergedbeast, boot)
+# 
+# p <- ggtree(mergedbeast, right = TRUE, timescale = TRUE)  
+# 
+# head(p$data)
+# test_tree <- merge_tree(beast,bayes) %>% merge_tree(boot)
+
+```
+
+append tree taxonomy and image information
+
+```{r}
+# 
+# ##tree taxonomy
+# taxonomy <- read.csv("/Users/michael_alfaro/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/tree-taxonomy")
+# ##get rid of index column
+#  taxonomy <- taxonomy[,-1]
+# head(taxonomy)
+# 
+# 
+# ###images
+# img_info <- read.csv("/Users/michael_alfaro/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/tip-image-paths.csv", header = F, as.is = T)
+# head(img_info)
+# 
+# imgshort <- img_info[1,]
+# imgshort
+# #ggtree(beast, right = TRUE) + geom_text(aes(label = node, color = isTip)) + scale_color_manual(values = c("black", NA))
+# ggtree(beast, right = TRUE) # + geom_text(aes(label = node, color = isTip)) + scale_color_manual(values = c("black", NA))
+# # ggtree(beast, right = TRUE) + geom_text(aes(label = node, color = isTip)) + scale_color_manual(values = c("black", NA))
+# p$data$x <- p$data$x - max(p$data$x)
+# 
+# p + geom_text(aes(label=bootstrap))
+# p + geom_text(subset=.(bootstrap>69), aes(label=bootstrap))
+# 
+# p + geom_text(subset=.(PP>69), aes(label=PP))
+# 
+# 
+# #p + geom_nodepoint(aes(size=PP), alpha=0.25) + scale_color_continuous(low="green", high="red")  
+# 
+# p <- p +  geom_nodepoint(,color="black", alpha=1, size=6)   + geom_text(aes(label=pamllabel), size=2, color = "white", fontface = 3) + theme_tree2(legend.position="right")
+# p
+
+```
+
+
+
+p <- p +  geom_nodepoint(subset=.(bootstrap>50),color="black", alpha=1, size=6) + scale_color_gradient(limits=c(50, 100), low="red", high="black")  + geom_text(aes(label=pamllabel), size=2, color = "white") + theme_tree2(legend.position="right")
+p <- p %<+% taxonomy + geom_text(aes(color=Order, label=Family, size=1)) 
+
+p <- p +  scale_x_continuous(breaks=seq(0, 150, 10), minor_breaks=seq(-150, -0, -5)) 
+p <- p + theme(panel.grid.major   = element_line(color="black", size=.2),
+                      panel.grid.minor   = element_line(color="grey", size=.2),
+                      panel.grid.major.y = element_blank(),
+                      panel.grid.minor.y = element_blank())
+
+
+##get bootstrap and PP values on to tree
+
+
+
+#p+ xlim(0,300)
+#p <- annotation_image(p, img_info, width = 0.2)
+#p <- geom_text(aes(x=node, label = "pamllabel", color = "red"))
+ 
+
+ggtree(ml, branch.length="dN_vs_dS") + 
+    geom_text(aes(x=branch, label=dN), 
+              size=3, vjust=-0.5, color="red") +
+                  geom_text(aes(x=branch, label=dS),
+                            size=3, vjust=1.2, color="darkgreen")
+
+
+
+
+
+
+###this function gets the daughter tips from a node
+
+para <- get.offspring.tip(beast@phylo, 120)
+gobioids <- get.offspring.tip(beast@phylo, 139)
+tumpts <- get.offspring.tip(beast@phylo, 154)
+
+
+
+```{r eval=FALSE}
+# cls <- list(c1=c("A", "B", "C", "D", "E"),
+#             c2=c("F", "G", "H"),
+#             c3=c("L", "K", "I", "J"),
+#             c4="M")
+# 
+# tree <- groupOTU(tree, cls)
+# 
+# ggtree(tree, aes(color=group, linetype=group)) + geom_text(aes(label=label),  hjust=-.25) +
+#      scale_color_manual(values=c("black", rainbow_hcl(4))) + theme(legend.position="right")
+# 
+# 
+# 
+# 
+# beast <- read.beast("labeled-node-tree.tre")
+# #ladderize(beast)
+# plot(beast, right = TRUE, annotation="pamllabel", annotation.color="red") + theme_tree() 
+# 
+# ggtree(beast, color="steelblue",right = TRUE, size=0.5, linetype="dotted")
+# ggtree(beast, setbranchlength = "none")
+# 
+# grid.arrange(ggtree(beast) + ggtitle("(Phylogram) rectangular layout"),
+#              ggtree(beast, branch.length='none') + ggtitle("(Cladogram) rectangular layout"),
+#          ggtree(beast, layout="slanted") + ggtitle("(Phylogram) slanted layout"),
+#              ggtree(beast, layout="slanted", branch.length='none') + ggtitle("(Cladogram) slanted layout"),
+#          ggtree(beast, layout="circular") + ggtitle("(Phylogram) circular layout"),
+#              ggtree(beast, layout="circular", branch.length="none") + ggtitle("(Cladogram) circular layout"),
+#          ggtree(beast, layout="unrooted") + ggtitle("unrooted layout"),
+#          ncol=2)
+# 
+# ggtree(beast) %>% add_legend()
+# ggtree(beast) + theme_tree2()
+# 
+# ggtree(beast)+geom_point(aes(shape=isTip, color=isTip), size=3)
+# 
+# p <- ggtree(beast) + geom_nodepoint(color="#b5e521", alpha=1/4, size=10)
+# p + geom_tippoint(color="#FDAC4F", shape=8, size=3)
+# p + geom_text(aes(label=label), size=3, color="purple", hjust=-0.3)
+# ggtree(beast, layout="circular") + geom_text(aes(label=label, angle=angle), size=3, color="purple", vjust=-0.3)
+# 
+# p + geom_text(aes(x=branch, label=label), size=3, color="purple", vjust=-0.3)
+# 
+# grid.arrange(
+#     ggtree(beast, color="red") + theme_tree2("steelblue"),
+#     ggtree(beast, color="white") + theme_tree("black"),
+#     ncol=2)
+# p %<% rtree(50)
+# 
+# gzoom(beast, grep("canthigaster", beast@phylo$tip.label)) #this would be handy for large trees--need a way to generate list of tips from a node number
+# 
+# ggtree(beast, aes(color=branch.length)) +
+#     scale_color_continuous(low="green", high="red") +
+#         theme(legend.position="bottom")
+# 
+# ggtree(beast) + geom_text(aes(label=node)) + geom_tiplab()
+# 
+# p <- ggtree(beast) + geom_point(aes(shape=isTip, color=isTip), size=3) 
+# annotation_clade(p, node=120, "paracanth", offset.text=50)
+# 
+# p <- ggtree(beast) 
+# annotation_clade2(p, "lampris_guttatus", "aphredoderus_sayanus", "Clade X", offset.text=3) %>%
+#     annotation_clade2("parachirus_xenicus", "chloroscombrus_orqueta", "Clade Y", bar.size=4, font.size=8, offset=5, offset.text=4, color="steelblue")
+# 
+# ggtree(beast) %>% hilight(node=120, fill="steelblue", alpha=.6) %>%
+#     hilight(node=200, fill="darkgreen", alpha=.6)
+# 
+# ggtree(beast, layout="fan") %>% hilight(node=120, fill="steelblue", alpha=.6) %>%
+#      hilight(node=200, fill="darkgreen", alpha=.6)
+# 
+# cp <- ggtree(beast) %>% collapse(node=21)
+# cp + geom_point(subset=.(node == 21), size=5, shape=23, fill="steelblue")
+# ##
+# 
+# bb <- groupOTU(beast, focus=c("lampris_guttatus", "zu_elongatus"))
+# bb <- ggtree(bb, aes(color=group))
+# 
+# bb + geom_text(aes(label=label), size=3, color="purple", hjust=-0.3)
+# 
+# 
+# bb <- groupClade(beast, node=c(200, 150))
+# ggtree(bb, aes(color=group, linetype=group))
+# 
+# ggtree(bb, aes(color=group, linetype=group)) +
+#     geom_text(aes(label=label), subset=.(group==2), hjust = -.5) +
+#         geom_text(aes(label=label), subset=.(group==1), hjust = -.5, color="black")
+# 
+# pp <- ggtree(beast) %>% phylopic("cb66c697-7431-4368-b134-eb9019e2ae10", color="steelblue", alpha = .3)
+# print(pp)
+# 
+# pp %>% phylopic("cb66c697-7431-4368-b134-eb9019e2ae10", color="#86B875", alpha=.8, node=4) %>%
+# +      phylopic("8d92b454-3131-4bbd-ac9c-e1df14c2fc5a", color="darkcyan", alpha=.8, node=17, width=.2)
+# 
+# 
+# ##annotating node with taxonomy
+# ##read in data from python notebook 12_calibrations_PAML_Sept_2015
+# 
+# df <- read.csv("/Users/michael_alfaro/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/tree-taxonomy")
+# 
+# ##get rid of index column
+#  df <- df[,-1]
+# head(df)
+# 
+# 
+# ## the  %<+% operator attaches a data frame to the tips of a tree view
+# 
+# 
+# ##the example
+# nwk <- system.file("extdata", "sample.nwk", package="ggtree")
+# tree <- read.tree(nwk)
+# p <- ggtree(tree)
+# 
+# dd <- data.frame(taxa  = LETTERS[1:13], 
+#              place = c(rep("GZ", 5), rep("HK", 3), rep("CZ", 4), NA),
+#                  value = round(abs(rnorm(13, mean=70, sd=10)), digits=1))
+# ## you don't need to order the data
+# ## data was reshuffled just for demonstration
+# dd <- dd[sample(1:13, 13), ]
+# row.names(dd) <- NULL
+# 
+# p <- p %<+% dd + geom_text(aes(color=place, label=label), hjust=-0.5) + 
+#        geom_tippoint(aes(size=value, shape=place, color=place), alpha=0.25)
+# p+theme(legend.position="right")
+# 
+# 
+# # p  + geom_tiplab() + ggplot2::xlim(0, 0.06) + ggplot2::scale_x_continuous
+# # annotation_image(p, imgshort,  width = 0.05, linetype=NULL, offset=.1)
+# #annotation_image(p, imgshort,  width = 0.05, linetype=NULL, offset=.1)  + ggplot2::xlim(0, 1)
+# 
+# # This is because the units are in two different spaces (data & pixel).
+# # 
+# # you can use xlim to get more space for text.
+# # 
+# # try:
+# # 
+# # ggtree(tree) + geom_tiplab() + ggplot2::xlim(0, 0.06)
+# 
+# 
+# # 
+# # img_info <- read.csv("/Users/michael_alfaro/Dropbox/malfaro-acanthomorph/dating/Friedman_12_calibrations/PAML_run_files/4_partitions/annotated_figtree_work/full-tree-work/tip-image-paths.csv", header = F, as.is = T)
+# # head(img_info)
+# # 
+# # 
+# # p <- ggtree(beast, time_scale=T,right = T )
+# # setwd("/Users/michael_alfaro/Dropbox/malfaro-acanthomorph/manuscript/pnas_tex/ETE_work/converted_pngs/")
+# # dfshort <- df[1,]
+# # 
+# # annotation_image(p, img_info,  width = 0.2, linetype=NULL, offset=.3)
+# # 
+# # 
+# # p <- p %<+% df + geom_text(aes(color=Family, label=Genus), hjust=-0.5)
+# # p
+# # 
+# 
+# 
+
+```
+
+###get the tree loaded
+I have a figtree file. 
+make a file with the taxonomy for each tip
+
+```{r}
+# library(ape)
+# beast <- read.beast("labeled-node-tree.tre")
+# exa <- read.tree("/Users/michael_alfaro/Dropbox/malfaro-acanthomorph/trees/75p/ExaBayes_ConsensusExtendedMajorityRuleNewick.Acanthomorph-75p-STDPART-1.5M-Burn25-FINAL.tre")
+# #ladderize(beast)
+# 
+# 
+# # 
+# #remove outgroups here
+# exa <- drop.tip(exa, c("alepisaurus_ferox", "ceratoscopelus_warmingii" ))
+# 
+# 
+# layout(matrix(1:2, 1, ))
+# plot(beast@phylo, type = "phylogram", right = T,  use.edge.length = F, show.node.label = F, cex = 0.5)
+# nodelabels(frame = "none", cex = 0.5)
+# plot(exa, type = "phylogram", right = T, use.edge.length = F, show.node.label = F, cex = 0.5)
+# nodelabels(frame = "none", cex = 0.5)
+# 
+#  exa <- reroot(exa, 225)
+# # 
+# # layout(matrix(1:2, 1, ))
+# # plot(beast@phylo, type = "phylogram", use.edge.length = F, show.node.label = F, cex = 0.5)
+# # nodelabels(frame = "none", cex = 0.5)
+# # plot(exa, type = "phylogram", use.edge.length = F, show.node.label = F, cex = 0.5)
+# # nodelabels(frame = "none", cex = 0.5)
+# # 
+# # 
+# # exa <- reroot(exa, 224)
+# # 
+#  mt <- merge_tree(beast, exa)
+# # 
+# # beastplot(beast, right = TRUE, annotation="HPD", annotation.color="red") + theme_tree() 
+# 
+# #read in a tree with posterior probabilities
+
+```
+
